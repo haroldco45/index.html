@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LA BARBERIA - Citas Online</title>
+    <style>
+        /* ESTILO ELEGANTE NEGRO Y DORADO */
+        :root {
+            --dorado: #c5a059;
+            --negro: #121212;
+            --gris: #1e1e1e;
+            --blanco: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--negro);
+            color: var(--blanco);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--gris);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid var(--dorado);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        h1 {
+            color: var(--dorado);
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: var(--dorado);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #121212;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .btn-enviar {
+            width: 100%;
+            padding: 15px;
+            background: var(--dorado);
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* LISTADO DE CITAS GUARDADAS */
+        .citas-list {
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        h2 {
+            font-size: 1.2em;
+            border-bottom: 1px solid var(--dorado);
+            padding-bottom: 10px;
+            color: var(--dorado);
+        }
+
+        .cita-item {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            border-left: 5px solid var(--dorado);
+        }
+
+        .btn-borrar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>LA BARBERIA</h1>
+        
+        <form id="formCita">
+            <div class="form-group">
+                <label>Nombre del Cliente</label>
+                <input type="text" id="nombre" placeholder="Nombre completo" required>
+            </div>
+
+            <div class="form-group">
+                <label>Servicio</label>
+                <select id="servicio" required>
+                    <option value="Corte de Cabello">Corte de Cabello</option>
+                    <option value="Arreglo de Barba">Arreglo de Barba</option>
+                    <option value="Combo (Corte + Barba)">Combo (Corte + Barba)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="fecha" required>
+            </div>
+
+            <div class="form-group">
+                <label>Hora</label>
+                <input type="time" id="hora" required>
+            </div>
+
+            <button type="submit" class="btn-enviar">RESERVAR CITA</button>
+        </form>
+
+        <div class="citas-list">
+            <h2>Citas Guardadas</h2>
+            <div id="contenedorCitas"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('formCita');
+        const contenedor = document.getElementById('contenedorCitas');
+        
+        // --- CONFIGURA TU NÚMERO AQUÍ ---
+        const miTelefono = "573000000000"; // Reemplaza por tu número real
+
+        // Cargar citas al abrir la app
+        window.onload = mostrarCitas;
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const nuevaCita = {
+                id: Date.now(),
+                nombre: document.getElementById('nombre').value,
+                servicio: document.getElementById('servicio').value,
+                fecha: document.getElementById('fecha').value,
+                hora: document.getElementById('hora').value
+            };
+
+            // Guardar en LocalStorage
+            let citas = JSON.parse(localStorage.getItem('misCitas')) || [];
+            citas.push(nuevaCita);
+            localStorage.setItem('misCitas', JSON.stringify(citas));
+
+            // Enviar WhatsApp
+            const texto = `¡Hola LA BARBERIA! Quiero agendar:%0A👤 *Nombre:* ${nuevaCita.nombre}%0A✂️ *Servicio:* ${nuevaCita.servicio}%0A📅 *Fecha:* ${nuevaCita.fecha}%0A⏰ *Hora:* ${nuevaCita.hora}`;
+            window.open(`https://wa.me/${miTelefono}?text=${texto}`);
+
+            form.reset();
+            mostrarCitas();
+        });
+
+        function mostrarCitas() {
+            let citas = JSON.parse(localStorage.getItem('misCitas')) || [];
+            contenedor.innerHTML = '';
+            
+            citas.forEach(cita => {
+                contenedor.innerHTML += `
+                    <div class="cita-item">
+                        <button class="btn-borrar" onclick="borrarCita(${cita.id})">×</button>
+                        <strong>${cita.nombre}</strong><br>
+                        <small>${cita.servicio}</small><br>
+                        <small>${cita.fecha} a las ${cita.hora}</small>
+                    </div>
+                `;
+            });
+        }
+
+        function borrarCita(id) {
+            let citas = JSON.parse(localStorage.getItem('misCitas'));
+            citas = citas.filter(c => c.id !== id);
+            localStorage.setItem('misCitas', JSON.stringify(citas));
+            mostrarCitas();
+        }
+    </script>
+</body>
+</html>
